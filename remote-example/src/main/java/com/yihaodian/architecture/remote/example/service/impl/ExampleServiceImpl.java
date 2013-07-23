@@ -9,11 +9,11 @@ import com.yihaodian.architecture.remote.example.service.ResultObject;
 
 public class ExampleServiceImpl implements ExampleService {
 
-	private AtomicInteger count=new AtomicInteger(0);
-	
+	private AtomicInteger count = new AtomicInteger(0);
+
 	public ResultObject testService(String name, ParameterVal parameter) {
 		// TODO Auto-generated method stub
-		System.out.println(name+"*******");
+		System.out.println(name + "*******");
 		return new ResultObject("return");
 	}
 
@@ -29,7 +29,7 @@ public class ExampleServiceImpl implements ExampleService {
 
 	public String testDataService(String name) {
 		// TODO Auto-generated method stub
-		System.out.println("recevied Data"+count.incrementAndGet());
+		System.out.println("recevied Data" + count.incrementAndGet());
 		return DataCreator.createObject(1);
 	}
 
