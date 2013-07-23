@@ -2,12 +2,13 @@ package com.yihaodian.architecture.remote.common.invoker;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import scala.concurrent.Await;
 import scala.concurrent.Future;
+import scala.concurrent.Promise;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.dispatch.Futures;
 import akka.util.Timeout;
 
 import com.typesafe.config.Config;
@@ -15,6 +16,7 @@ import com.typesafe.config.ConfigFactory;
 import com.yihaodian.architecture.remote.common.ClientManagerFactory;
 import com.yihaodian.architecture.remote.common.Constants;
 import com.yihaodian.architecture.remote.common.Invoker;
+import com.yihaodian.architecture.remote.common.PackagedMessage;
 import com.yihaodian.architecture.remote.common.RemoteRequest;
 import com.yihaodian.architecture.remote.common.RemoteResponse;
 import com.yihaodian.architecture.remote.common.Util.SystemUtil;
@@ -23,7 +25,6 @@ public class ActorInvoker implements Invoker{
 
 	public ActorSystem system ;
 	private Map<String,ActorRef> remoteActorMap=new ConcurrentHashMap<String, ActorRef>();
-	//private Map<String,ActorsRouteManager> actorsRouteManagerMap=new ConcurrentHashMap<String, ActorsRouteManager>();
 	private static Invoker invoker;
 	private ActorInvoker()
 	{
@@ -45,25 +46,25 @@ public class ActorInvoker implements Invoker{
 	}
 	public RemoteResponse invokeSync(RemoteRequest request)throws Exception
 	{   
-		Future<Object> future= invokeFuture(request);
+		Future<RemoteResponse> future= invokeFuture(request);
 		if(future==null)
 			return null;
 		Timeout timeout = new Timeout(request.getTimeout());
 		RemoteResponse response=(RemoteResponse)Await.result(future, timeout.duration());
 		return response;
 	}
-	public Future<Object> invokeFuture(RemoteRequest request)throws Exception
+	public Future<RemoteResponse> invokeFuture(RemoteRequest request)throws Exception
 	{
 		request.setCallType(Constants.CALLTYPE_REPLY);
 		request.createMillisTime();
 		//remote node
 		ActorRef actor=selectActor(ClientManagerFactory.getClientManager().getRemoteHost(request.getServiceName()).getConnect(), request.getServiceName(), request.getMethodName());
 		//Timeout timeout = new Timeout(request.getTimeout());
-	//	Future<Object> future= Patterns.ask(actor, request, timeout);
-		//Promise<RemoteResponse> promise=Futures.promise();
-		//Future<RemoteResponse> future = promise.future();
-		actor.tell(request, null);
-		return null;
+		Promise<RemoteResponse> promise=Futures.promise();
+		Future<RemoteResponse> future = promise.future();
+		PackagedMessage message=new PackagedMessage(request, promise);
+		actor.tell(message,  ActorRef.noSender());
+		return future;
 	}
 	public void invokeOneWay(RemoteRequest request)
 	{
@@ -73,7 +74,7 @@ public class ActorInvoker implements Invoker{
 		actor.tell(request, ActorRef.noSender());
 	}
 	
-	private ActorRef selectActor(String connect,String serviceName,String methodName)
+	private ActorRef selectActor(String connect,String serviceName,String methodName) 
 	{
 		String path=formatRemoteAddress(connect, serviceName, methodName);
 		ActorRef actor=remoteActorMap.get(path);
@@ -113,9 +114,5 @@ public class ActorInvoker implements Invoker{
 	    
 		return actorsRouteManager.route();*/
 		return format;
-	}
-	public void invokeResponse(RemoteResponse response) {
-		// TODO Auto-generated method stub
-		
 	}
 }

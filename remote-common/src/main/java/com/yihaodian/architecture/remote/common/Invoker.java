@@ -5,6 +5,5 @@ import scala.concurrent.Future;
 public interface Invoker {
 	public RemoteResponse invokeSync(RemoteRequest request)throws Exception;
 	public void invokeOneWay(RemoteRequest request);
-	public Future<Object> invokeFuture(RemoteRequest request)throws Exception;
-	public void invokeResponse(RemoteResponse response);
+	public Future<RemoteResponse> invokeFuture(RemoteRequest request)throws Exception;
 }
