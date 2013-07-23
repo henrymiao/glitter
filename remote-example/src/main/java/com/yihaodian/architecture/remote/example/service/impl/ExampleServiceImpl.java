@@ -2,6 +2,7 @@ package com.yihaodian.architecture.remote.example.service.impl;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.yihaodian.architecture.remote.example.service.DataCreator;
 import com.yihaodian.architecture.remote.example.service.ExampleService;
 import com.yihaodian.architecture.remote.example.service.ParameterVal;
 import com.yihaodian.architecture.remote.example.service.ResultObject;
@@ -26,9 +27,10 @@ public class ExampleServiceImpl implements ExampleService {
 		System.out.println("no return other result");
 	}
 
-	public void testDataService(String name) {
+	public String testDataService(String name) {
 		// TODO Auto-generated method stub
 		System.out.println("recevied Data"+count.incrementAndGet());
+		return DataCreator.createObject(1);
 	}
 
 }
